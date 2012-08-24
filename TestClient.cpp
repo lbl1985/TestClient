@@ -23,6 +23,7 @@ and only for the research of this specific project, as defined herein.
 #include "CTLiveMediaReader.h"
 #include "libtools/tool_logger.h"
 #include "libtools/tool_mmtime.h"
+#include <opencv2/opencv.hpp>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -45,6 +46,9 @@ public:
 		m_StreamParam.nSmoothingBufLength = 0;
 		m_StreamParam.sCamUrl = strdup( szUrl );
 		m_rawFile = fopen("rawvideo.yuv", "wb" );
+
+		
+		
 	}
 
 	// Destructor
@@ -101,10 +105,48 @@ public:
 	{
 		if( nEvtType != ETP_PIC )
 			return;
+		std::cout << "event" << std::endl;
 
 		CPicture * pPic = pClient->GetNextImage();
-		if( pPic ) {
+		//const CPicture * pPic = pClient->PeekNextImage();
+		if( pPic ) {	
+			//cv::Mat mPic(()
+			//cv::Ptr<unsigned char> pData = pPic->m_ui8DataBuf;
+			cv::Mat mPic( pPic->m_nHeight , pPic->m_nWidth, CV_8UC3, pPic->m_ui8DataBuf, cv::Mat::AUTO_STEP);
+			//unsigned char * data = new unsigned char[pPic->m_nBufSize];
+			//memcpy(data, pPic->m_ui8DataBuf, pPic->m_nBufSize);
+			//cv::Mat mPic( pPic->m_nHeight , pPic->m_nWidth, CV_8UC3, data, cv::Mat::AUTO_STEP);
+			//mPic.addref();
+			//cv::Mat cPic( pPic->m_nHeight , pPic->m_nWidth, CV_8UC3);// = mPic.clone();
+			//cv::cvtColor(mPic, cPic, CV_RGB2BGR);
+			//std::cout << mPic.at<uchar>(50,50) << std::endl;
+			//std::cout << data[56] << " " << pPic->m_ui8DataBuf[56] << std::endl;
+			//cv::Mat mPic(pPic->m_nHeight , pPic->m_nWidth, CV_8UC3);
+			//uchar* pointer = pPic->m_ui8DataBuf;
+
+			//////mPic.data = pointer;
+
+			//cv::Mat mPic2;
+			////
+			//////cv::imshow(windowName, mPic2);
+			//int nl = pPic->m_nHeight;
+			//int nc = pPic->m_nWidth;
+
+			//for (int j= 0; j < nl; j++){
+			//	uchar* data = mPic.ptr<uchar>(j);
+			//	for(int i = 0; i < nc; i++){
+			//		for(int k = 0; k < 3; k++)
+			//			*(data++) = *(pointer++);
+			//	}
+			//}
+			//mPic.copyTo(mPic2);
+			//
+			//cv::imshow("test", mPic);
+			cv::imwrite("test.jpg", mPic);
+
+			//CPicture * pPic2 = pClient->GetNextImage();
 			fwrite( pPic->m_ui8DataBuf, 1, pPic->m_nBufSize, m_rawFile );
+			//cv::imshow(windowName, pPic->m_ui8DataBuf);
 			pClient->Recycle( pPic );
 		}
 	}
@@ -124,6 +166,9 @@ private:
 	CCTStreamReader		* m_liveStreamer;
 	SStreamingProperty	m_StreamParam;
 	FILE				* m_rawFile;
+
+	// Testing purposed property
+	std::string windowName;
 
 };
 
@@ -149,7 +194,7 @@ int main(int argc, char* argv[])
 
 	// Tracing enabled
 	INIT_SYSTRACE( LEVEL_TRACE, "trace.log" );
-
+	cv::namedWindow("test", 1);
 	// Create an instance of the class defined above with the URL
 	CTestClient client( pszUrl );
 	
